@@ -6,7 +6,7 @@ me=${0##*/}
 #usage
 print_usage()
 {
-	echo "Usage: $me [build|clean|superclean]" >&2
+	echo "Usage: $me [build|buildsingle|clean|superclean]" >&2
 	exit 2
 }
 
@@ -48,6 +48,14 @@ case $op in
 			 make ARCH=arm64 O=out CCACHE=ccache merge_hi3650_defconfig
 		fi
 		make ARCH=arm64 O=out CCACHE=ccache -j$CPUNUM
+		;;
+	buildsingle)
+		echo "building..."
+		if [ ! -f out/.config ]; then
+			echo "Config file not found, invoking make"
+			 make ARCH=arm64 O=out CCACHE=ccache merge_hi3650_defconfig
+		fi
+		make ARCH=arm64 O=out CCACHE=ccache -j1
 		;;
 	clean)
 		echo "cleaning..."
