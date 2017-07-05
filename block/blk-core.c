@@ -2034,6 +2034,19 @@ generic_make_request_checks(struct bio *bio)
 		}
 	}
 
+	/*
+	 * Block write and discard commands going to a read-only device.
+	 * We do this because kernel drivers often lack necessary checks
+	 * and send write/discard commands to read-only block devices.
+	 */
+	if (unlikely((bio->bi_rw & (REQ_WRITE | REQ_WRITE_SAME | REQ_DISCARD))
+			&& bdev_read_only(bio->bi_bdev))) {
+		pr_warn("unexpected %s command to %s blocked\n",
+			(bio->bi_rw & REQ_DISCARD) ? "discard" : "write",
+			bdevname(bio->bi_bdev, b));
+		goto end_io;
+	}
+
 	if ((bio->bi_rw & REQ_DISCARD) &&
 	    (!blk_queue_discard(q) ||
 	     ((bio->bi_rw & REQ_SECURE) && !blk_queue_secdiscard(q)))) {
